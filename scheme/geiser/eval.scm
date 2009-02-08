@@ -25,18 +25,32 @@
 ;;; Code:
 
 (define-module (geiser eval)
-  #:export (eval-in))
+  #:export (eval-in)
+  #:use-module (srfi srfi-1))
 
 (define (eval-in form module-name)
   "Evals FORM in the module designated by MODULE-NAME.
 If MODULE-NAME is #f or resolution fails, the current module is used instead.
 The result is a list of the form ((RESULT . <form-value>))
-if no evaluation error happens, or ((ERROR <error-key> <error-arg>...))
-in case of errors."
+if no evaluation error happens, or ((ERROR (KEY . <error-key>) <error-arg>...))
+in case of errors. Each error arg is a cons (NAME . VALUE), where NAME includes
+SUBR, MSG and REST."
   (let ((module (or (and module-name (resolve-module module-name))
                     (current-module))))
     (catch #t
       (lambda () (list (cons 'result (eval form module))))
-      (lambda (key . args) (list (cons 'error (cons key args)))))))
+      (lambda (key . args)
+        (list (cons 'error (apply parse-error (cons key args))))))))
+
+(define (parse-error key . args)
+  (let* ((len (length args))
+         (subr (and (> len 0) (first args)))
+         (msg (and (> len 1) (second args)))
+         (margs (and (> len 2) (third args)))
+         (rest (and (> len 3) (fourth args))))
+    (list (cons 'key key)
+          (cons 'subr (or subr '()))
+          (cons 'msg (if msg (apply format (cons #f (cons msg margs))) '()))
+          (cons 'rest (or rest '())))))
 
 ;;; eval.scm ends here
