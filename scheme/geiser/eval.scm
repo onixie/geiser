@@ -38,13 +38,13 @@ SUBR, MSG and REST."
   (let ((module (or (and module-name (resolve-module module-name))
                     (current-module))))
     (catch #t
-           (lambda ()
-             (let* ((result #f)
-                    (output (with-output-to-string
-                              (lambda () (set! result (eval form module))))))
-               (list (cons 'result result) (cons 'output output))))
-           (lambda (key . args)
-             (list (cons 'error (apply parse-error (cons key args))))))))
+      (lambda ()
+        (let* ((result #f)
+               (output (with-output-to-string
+                         (lambda () (set! result (compile form module))))))
+          (list (cons 'result result) (cons 'output output))))
+      (lambda (key . args)
+        (list (cons 'error (apply parse-error (cons key args))))))))
 
 (define (parse-error key . args)
   (let* ((len (length args))
@@ -56,5 +56,7 @@ SUBR, MSG and REST."
           (cons 'subr (or subr '()))
           (cons 'msg (if msg (apply format (cons #f (cons msg margs))) '()))
           (cons 'rest (or rest '())))))
+
+(define (test-geiser) 4)
 
 ;;; eval.scm ends here
