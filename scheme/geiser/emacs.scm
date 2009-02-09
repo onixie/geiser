@@ -25,7 +25,7 @@
 ;;; Code:
 
 (define-module (geiser emacs)
-  #:re-export (proc-args var-metadata)
+  #:re-export (proc-args completions)
   #:use-module (geiser introspection))
 
 

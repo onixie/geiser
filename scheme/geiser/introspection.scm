@@ -25,8 +25,9 @@
 ;;; Code:
 
 (define-module (geiser introspection)
-  #:export (proc-args var-metadata)
+  #:export (proc-args completions)
   #:use-module (system vm program)
+  #:use-module (ice-9 session)
   #:use-module (srfi srfi-1))
 
 (define (proc-args proc)
@@ -61,5 +62,8 @@
 (define (format-args args opt)
   (list (cons 'required args)
         (cons 'optional (or opt '()))))
+
+(define (completions prefix)
+  (map symbol->string (apropos-internal (string-append "^" prefix))))
 
 ;;; introspection.scm ends here
