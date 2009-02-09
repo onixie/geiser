@@ -51,7 +51,7 @@
          (req (first arity))
          (opt (third arity)))
     (format-args (map (lambda (n)
-                        (string->symbol (format "arg~A" n)))
+                        (string->symbol (format "arg~A" (+ 1 n))))
                       (iota req))
                  (and opt 'rest))))
 
