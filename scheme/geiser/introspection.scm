@@ -57,8 +57,12 @@
                  (and opt 'rest))))
 
 (define (macro-args macro)
-  (format-args '(...) #f))
+  (let ((prog (macro-transformer macro)))
+    (if prog
+        (program-args prog)
+        (format-args '(...) #f))))
 
+(define (foobar) 6)
 (define (format-args args opt)
   (list (cons 'required args)
         (cons 'optional (or opt '()))))
