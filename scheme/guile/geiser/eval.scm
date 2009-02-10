@@ -25,12 +25,12 @@
 ;;; Code:
 
 (define-module (geiser eval)
-  #:export (eval-in)
+  #:export (eval-in comp-file)
   #:use-module (srfi srfi-1))
 
 (define (eval-in form module-name)
-  "Evals FORM in the module designated by MODULE-NAME.
-If MODULE-NAME is #f or resolution fails, the current module is used instead.
+  "Evals @var{form} in the module designated by @var{module-name}.
+If @var{module-name} is @var{#f} or resolution fails, the current module is used instead.
 The result is a list of the form ((RESULT . <form-value>) (OUTPUT . <string>))
 if no evaluation error happens, or ((ERROR (KEY . <error-key>) <error-arg>...))
 in case of errors. Each error arg is a cons (NAME . VALUE), where NAME includes
@@ -61,5 +61,9 @@ SUBR, MSG and REST."
           (cons 'subr (or subr '()))
           (cons 'msg (if msg (apply format (cons #f (cons msg margs))) '()))
           (cons 'rest (or rest '())))))
+
+(define (comp-file path)
+  "Compile and load file, given its full @var{path}."
+  (compile-file path))
 
 ;;; eval.scm ends here

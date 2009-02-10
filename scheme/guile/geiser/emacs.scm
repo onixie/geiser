@@ -25,8 +25,13 @@
 ;;; Code:
 
 (define-module (geiser emacs)
-  #:re-export (proc-args completions)
-  #:use-module (geiser introspection))
+  #:re-export (ge:proc-args
+               ge:completions
+               ge:compile-file)
+  #:use-module ((geiser introspection)
+                :renamer (symbol-prefix-proc 'ge:))
+  #:use-module ((geiser eval)
+                :select ((comp-file . ge:compile-file))))
 
 
 ;;; emacs.scm ends here
