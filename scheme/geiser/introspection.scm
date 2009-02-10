@@ -44,9 +44,10 @@
   (let* ((arity (program-arity program))
          (arg-no (first arity))
          (opt (> (second arity) 0))
-         (args (map first (take (program-bindings program) arg-no)))
-         (module (program-module program)))
-    (format-args (if opt (drop-right args 1) args) (and opt (last args)) module)))
+         (args (map first (take (program-bindings program) arg-no))))
+    (format-args (if opt (drop-right args 1) args)
+                 (and opt (last args))
+                 (program-module program))))
 
 (define (procedure-args proc)
   (let* ((arity (procedure-property proc 'arity))
@@ -71,6 +72,8 @@
         (cons 'module (if module (module-name module) '()))))
 
 (define (completions prefix)
-  (map symbol->string (apropos-internal (string-append "^" prefix))))
+  (sort! (map symbol->string
+              (apropos-internal (string-append "^" prefix)))
+         string<?))
 
 ;;; introspection.scm ends here
