@@ -29,17 +29,20 @@
            geiser/compile
            geiser/load-file
            geiser/compile-file
+           geiser/completions
            geiser/autodoc
            geiser/make-repl-reader)
 
   (compile-enforce-module-constants #f)
-  (require (lib "geiser/eval"))
+  (require (lib "geiser/eval")
+           (lib "geiser/completions"))
 
   (define geiser/eval eval-in)
   (define geiser/compile compile-in)
   (define geiser/load-file load-file)
   (define geiser/compile-file compile-file)
   (define (geiser/autodoc . x) #f)
+  (define geiser/completions completions)
 
   (define prompt (make-parameter "mzscheme@(geiser)"))
   (define (geiser/make-repl-reader builtin-reader)
