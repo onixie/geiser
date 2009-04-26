@@ -58,9 +58,9 @@
 
   (define (geiser/eval form spec)
     (geiser/set-result! (void))
-    (parameterize ((current-error-port nowhere))
-      (eval #`(enter! #,(ensure-module spec))))
-    (with-handlers ((exn? (dynamic-require ''geiser 'geiser/format-error)))
+    (with-handlers ((exn? geiser/format-error))
+      (parameterize ((current-error-port nowhere))
+        (eval #`(enter! #,(ensure-module spec))))
       ((dynamic-require ''geiser 'geiser/set-result!) (eval form)))
     (enter! #f)
     last-result)
