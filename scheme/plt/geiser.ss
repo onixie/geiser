@@ -27,6 +27,8 @@
 (module geiser scheme
   (provide geiser/eval
            geiser/compile
+           geiser/load-file
+           geiser/compile-file
            geiser/autodoc
            geiser/make-repl-reader)
 
@@ -35,6 +37,8 @@
 
   (define geiser/eval eval-in)
   (define geiser/compile compile-in)
+  (define geiser/load-file load-file)
+  (define geiser/compile-file compile-file)
   (define (geiser/autodoc . x) #f)
 
   (define prompt (make-parameter "mzscheme@(geiser)"))

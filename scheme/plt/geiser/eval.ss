@@ -26,19 +26,35 @@
 
 #lang scheme
 
-(provide eval-in compile-in set-last-result)
+(provide eval-in compile-in
+         load-file compile-file)
 
 (require scheme/enter)
 
 (define last-result (void))
 (define nowhere (open-output-nowhere))
 
-(define (ensure-module spec)
+(define (ensure-spec spec)
   (cond ((symbol? spec) spec)
         ((not (string? spec)) #f)
         ((not (file-exists? spec)) #f)
         ((absolute-path? spec) `(file ,spec))
         (else spec)))
+
+(define (load-module spec . port)
+  (parameterize ((current-error-port (if (null? port) nowhere (car port))))
+    (eval #`(enter! #,spec)))
+  (enter! #f))
+
+(define (ensure-namespace mod-spec)
+  (letrec ((spec (ensure-spec mod-spec))
+           (handler (lambda (e)
+                      (load-module spec)
+                      (module->namespace spec))))
+    (if spec
+        (with-handlers ((exn:fail:contract? handler))
+          (module->namespace spec))
+        (current-namespace))))
 
 (define (exn-key e)
   (vector-ref (struct->vector e) 0))
@@ -53,13 +69,20 @@
 (define (eval-in form spec)
   (set-last-result (void))
   (with-handlers ((exn? set-last-error))
-    (parameterize ((current-error-port nowhere))
-      (eval #`(enter! #,(ensure-module spec))))
-    ((dynamic-require '(lib "geiser/eval")
-                      'set-last-result) (eval form)))
-  (enter! #f)
+    (set-last-result (eval form (ensure-namespace spec))))
   last-result)
 
 (define compile-in eval-in)
+
+(define (load-file file)
+  (with-handlers ((exn? set-last-error))
+    (set-last-result
+     (string-append (with-output-to-string
+                      (lambda ()
+                        (load-module (ensure-spec file) (current-output-port))))
+                    "done.")))
+  last-result)
+
+(define compile-file load-file)
 
 ;;; eval.ss ends here
