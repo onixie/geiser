@@ -30,12 +30,14 @@
            geiser/load-file
            geiser/compile-file
            geiser/completions
+           geiser/symbol-location
            geiser/autodoc
            geiser/make-repl-reader)
 
   (compile-enforce-module-constants #f)
   (require (lib "geiser/eval")
-           (lib "geiser/completions"))
+           (lib "geiser/completions")
+           (lib "geiser/locations"))
 
   (define geiser/eval eval-in)
   (define geiser/compile compile-in)
@@ -43,6 +45,7 @@
   (define geiser/compile-file compile-file)
   (define (geiser/autodoc . x) #f)
   (define geiser/completions completions)
+  (define geiser/symbol-location symbol-location)
 
   (define prompt (make-parameter "mzscheme@(geiser)"))
   (define (geiser/make-repl-reader builtin-reader)
