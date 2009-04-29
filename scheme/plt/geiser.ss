@@ -53,6 +53,7 @@
       (display (prompt))
       (builtin-reader))))
 
+(require scheme/help)
 (require 'geiser)
 
 (current-prompt-read
