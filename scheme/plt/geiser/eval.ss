@@ -43,13 +43,13 @@
 
 (define (load-module spec . port)
   (parameterize ((current-error-port (if (null? port) nowhere (car port))))
-    (eval #`(enter! #,spec)))
-  (enter! #f))
+    (eval #`(enter! #,spec))))
 
 (define (ensure-namespace mod-spec)
   (letrec ((spec (ensure-spec mod-spec))
            (handler (lambda (e)
                       (load-module spec)
+                      (enter! #f)
                       (module->namespace spec))))
     (if spec
         (with-handlers ((exn:fail:contract? handler))
