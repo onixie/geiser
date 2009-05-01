@@ -26,8 +26,11 @@
 
 #lang scheme
 
-(provide eval-in compile-in
-         load-file compile-file)
+(provide eval-in
+         compile-in
+         load-file
+         compile-file
+         make-repl-reader)
 
 (require scheme/enter)
 
@@ -56,6 +59,19 @@
           (module->namespace spec))
         (current-namespace))))
 
+(define (namespace->module-path-name ns)
+  (let ((rmp (variable-reference->resolved-module-path
+              (eval '(#%variable-reference) ns))))
+    (and (resolved-module-path? rmp)
+         (resolved-module-path-name rmp))))
+
+(define (namespace->module-name ns)
+  (let ((path (or (namespace->module-path-name ns) "<top>")))
+    (call-with-values (lambda () (split-path path))
+      (lambda (_ basename __) basename))))
+
+(define last-namespace (make-parameter (current-namespace)))
+
 (define (exn-key e)
   (vector-ref (struct->vector e) 0))
 
@@ -76,13 +92,22 @@
 
 (define (load-file file)
   (with-handlers ((exn? set-last-error))
-    (set-last-result
-     (string-append (with-output-to-string
-                      (lambda ()
-                        (load-module (ensure-spec file) (current-output-port))))
-                    "done.")))
+    (let ((current-path (namespace->module-path-name (last-namespace))))
+      (set-last-result
+       (string-append (with-output-to-string
+                        (lambda ()
+                          (load-module (ensure-spec file) (current-output-port))))
+                      "done."))
+      (load-module (and (path? current-path)
+                        (ensure-spec (path->string current-path))))))
   last-result)
 
 (define compile-file load-file)
+
+(define (make-repl-reader builtin-reader)
+  (lambda (ns)
+    (last-namespace ns)
+    (printf "mzscheme@(~a)" (namespace->module-name ns))
+    (builtin-reader)))
 
 ;;; eval.ss ends here

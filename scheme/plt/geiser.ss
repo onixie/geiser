@@ -35,9 +35,7 @@
            geiser/make-repl-reader)
 
   (compile-enforce-module-constants #f)
-  (require (lib "geiser/eval")
-           (lib "geiser/completions")
-           (lib "geiser/locations"))
+  (require geiser/eval geiser/completions geiser/locations)
 
   (define geiser/eval eval-in)
   (define geiser/compile compile-in)
@@ -47,20 +45,14 @@
   (define geiser/completions completions)
   (define geiser/symbol-location symbol-location)
 
-  (define prompt (make-parameter "mzscheme@(geiser)"))
-  (define (geiser/make-repl-reader builtin-reader)
-    (lambda ()
-      (display (prompt))
-      (builtin-reader))))
+  (define (geiser/make-repl-reader)
+    (compose (make-repl-reader (current-prompt-read)) current-namespace)))
 
 (require scheme/help)
 (require 'geiser)
 
 (current-prompt-read
- (let ([old (current-prompt-read)])
-   (lambda ()
-     (current-prompt-read
-      ((dynamic-require ''geiser 'geiser/make-repl-reader) old)))))
+ ((dynamic-require ''geiser 'geiser/make-repl-reader)))
 
 
 ;;; geiser.ss ends here
