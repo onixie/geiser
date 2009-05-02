@@ -30,6 +30,7 @@
          compile-in
          load-file
          compile-file
+         macroexpand
          make-repl-reader)
 
 (require scheme/enter srfi/13)
@@ -114,6 +115,12 @@
   last-result)
 
 (define compile-file load-file)
+
+(define (macroexpand form . all)
+  (let ((all (and (not (null? all)) (car all))))
+    (with-output-to-string
+      (lambda ()
+        (pretty-print (syntax->datum ((if all expand expand-once) form)))))))
 
 (define (make-repl-reader builtin-reader)
   (lambda (ns)

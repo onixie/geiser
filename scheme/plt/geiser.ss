@@ -29,6 +29,7 @@
            geiser/compile
            geiser/load-file
            geiser/compile-file
+           geiser/macroexpand
            geiser/completions
            geiser/symbol-location
            geiser/autodoc
@@ -44,6 +45,7 @@
   (define (geiser/autodoc . x) #f)
   (define geiser/completions completions)
   (define geiser/symbol-location symbol-location)
+  (define geiser/macroexpand macroexpand)
 
   (define (geiser/make-repl-reader)
     (compose (make-repl-reader (current-prompt-read)) current-namespace)))
