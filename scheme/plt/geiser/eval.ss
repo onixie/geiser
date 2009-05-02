@@ -91,13 +91,16 @@
   (set! last-result `((error (key . ,(exn-key e))
                              (subr)
                              (msg . ,(exn-message e))))))
-(define (set-last-result v)
-  (set! last-result `((result  ,v))))
+
+(define (set-last-result v . vs)
+  (set! last-result `((result  ,v ,@vs))))
 
 (define (eval-in form spec)
   (set-last-result (void))
   (with-handlers ((exn? set-last-error))
-    (set-last-result (eval form (ensure-namespace spec))))
+    (call-with-values
+        (lambda () (eval form (ensure-namespace spec)))
+      set-last-result))
   last-result)
 
 (define compile-in eval-in)
