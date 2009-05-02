@@ -32,7 +32,7 @@
          compile-file
          make-repl-reader)
 
-(require scheme/enter)
+(require scheme/enter srfi/13)
 
 (define last-result (void))
 (define nowhere (open-output-nowhere))
@@ -66,9 +66,20 @@
          (resolved-module-path-name rmp))))
 
 (define (namespace->module-name ns)
-  (let ((path (or (namespace->module-path-name ns) "<top>")))
-    (call-with-values (lambda () (split-path path))
-      (lambda (_ basename __) basename))))
+  (let ((path (namespace->module-path-name ns)))
+    (if (not path)
+        "<top>"
+        (let* ((path (path->string path))
+               (cpaths (map path->string (current-library-collection-paths)))
+               (prefix-len (lambda (p)
+                             (let ((pl (string-length p)))
+                               (if (= pl (string-prefix-length p path)) pl 0))))
+               (lens (map prefix-len cpaths))
+               (real-path (substring path (apply max lens))))
+          (if (absolute-path? real-path)
+              (call-with-values (lambda () (split-path path))
+                (lambda (_ basename __) basename))
+              (regexp-replace "\\.[^./]*$" real-path ""))))))
 
 (define last-namespace (make-parameter (current-namespace)))
 
