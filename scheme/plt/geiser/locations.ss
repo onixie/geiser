@@ -26,16 +26,23 @@
 
 #lang scheme
 
-(provide symbol-location)
+(provide symbol-location
+         symbol-module-path-name
+         symbol->module-name)
 
-(define (%symbol-location sym)
+(require geiser/utils)
+
+(define (symbol-module-path-name sym)
   (let ([binding (identifier-binding sym)])
     (and (list? binding)
          (resolved-module-path-name
           (module-path-index-resolve (car binding))))))
 
 (define (symbol-location sym)
-  (let ((file (%symbol-location (namespace-symbol->identifier sym))))
+  (let ((file (symbol-module-path-name (namespace-symbol->identifier sym))))
     (list (cons 'file (if (path? file) (path->string file) '())))))
+
+(define symbol->module-name
+  (compose module-path-name->name symbol-module-path-name))
 
 ;;; locations.ss ends here

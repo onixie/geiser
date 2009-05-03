@@ -33,7 +33,7 @@
          macroexpand
          make-repl-reader)
 
-(require scheme/enter srfi/13)
+(require scheme/enter geiser/utils)
 
 (define last-result (void))
 (define nowhere (open-output-nowhere))
@@ -66,21 +66,8 @@
     (and (resolved-module-path? rmp)
          (resolved-module-path-name rmp))))
 
-(define (namespace->module-name ns)
-  (let ((path (namespace->module-path-name ns)))
-    (if (not path)
-        "<top>"
-        (let* ((path (path->string path))
-               (cpaths (map path->string (current-library-collection-paths)))
-               (prefix-len (lambda (p)
-                             (let ((pl (string-length p)))
-                               (if (= pl (string-prefix-length p path)) pl 0))))
-               (lens (map prefix-len cpaths))
-               (real-path (substring path (apply max lens))))
-          (if (absolute-path? real-path)
-              (call-with-values (lambda () (split-path path))
-                (lambda (_ basename __) basename))
-              (regexp-replace "\\.[^./]*$" real-path ""))))))
+(define namespace->module-name
+  (compose module-path-name->name namespace->module-path-name))
 
 (define last-namespace (make-parameter (current-namespace)))
 
@@ -111,7 +98,8 @@
       (set-last-result
        (string-append (with-output-to-string
                         (lambda ()
-                          (load-module (ensure-spec file) (current-output-port))))
+                          (load-module (ensure-spec file)
+                                       (current-output-port))))
                       "done."))
       (load-module (and (path? current-path)
                         (ensure-spec (path->string current-path))))))
