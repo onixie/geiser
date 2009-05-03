@@ -33,7 +33,7 @@
          macroexpand
          make-repl-reader)
 
-(require scheme/enter geiser/utils)
+(require scheme/enter geiser/utils geiser/autodoc)
 
 (define last-result (void))
 (define nowhere (open-output-nowhere))
@@ -85,6 +85,7 @@
 (define (eval-in form spec)
   (set-last-result (void))
   (with-handlers ((exn? set-last-error))
+    (update-module-cache spec form)
     (call-with-values
         (lambda () (eval form (ensure-namespace spec)))
       set-last-result))
@@ -95,6 +96,7 @@
 (define (load-file file)
   (with-handlers ((exn? set-last-error))
     (let ((current-path (namespace->module-path-name (last-namespace))))
+      (update-module-cache file)
       (set-last-result
        (string-append (with-output-to-string
                         (lambda ()

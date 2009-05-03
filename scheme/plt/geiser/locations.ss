@@ -27,12 +27,13 @@
 #lang scheme
 
 (provide symbol-location
+         symbol-location*
          symbol-module-name
          symbol-module-path-name)
 
 (require geiser/utils)
 
-(define (%symbol-location sym)
+(define (symbol-location* sym)
   (let* ((id (namespace-symbol->identifier sym))
          (binding (and id (identifier-binding id))))
     (if (list? binding)
@@ -43,13 +44,13 @@
         (cons sym #f))))
 
 (define (symbol-location sym)
-  (let* ((loc (%symbol-location sym))
+  (let* ((loc (symbol-location* sym))
          (name (car loc))
          (path (cdr loc)))
     (list (cons 'name name)
           (cons 'file (if (path? path) (path->string path) '())))))
 
-(define symbol-module-path-name (compose cdr %symbol-location))
+(define symbol-module-path-name (compose cdr symbol-location*))
 
 (define symbol-module-name
   (compose module-path-name->name symbol-module-path-name))
