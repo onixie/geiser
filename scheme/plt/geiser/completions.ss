@@ -28,7 +28,7 @@
 
 (provide completions)
 
-(require srfi/13)
+(require srfi/13 geiser/utils)
 
 (define (completions prefix . context)
   (let ((context (and (not (null? context)) (car context)))
@@ -36,12 +36,6 @@
     (append (filter prefix? (map symbol->string (local-bindings context)))
             (sort (filter prefix? (map symbol->string (namespace-mapped-symbols)))
                   string<?))))
-
-(define (pair->list pair)
-  (let loop ((d pair) (s '()))
-    (cond ((null? d) (reverse s))
-          ((symbol? d) (reverse (cons d s)))
-          (else (loop (cdr d) (cons (car d) s))))))
 
 (define (local-bindings form)
   (define (body f) (if (> (length f) 2) (cddr f) '()))
@@ -58,5 +52,7 @@
           ((and (eq? 'let (car form)) (symbol? (cadr form)))
            (loop (cons 'let (body form)) (cons (cadr form) bindings)))
           (else (loop (cdr form) bindings)))))
+
+
 
 ;;; completions.ss ends here
