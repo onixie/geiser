@@ -95,6 +95,8 @@
      (add-signature! name formals store))
     ((list 'define name (list 'lambda formals body ...))
      (add-signature! name formals store))
+    ((list 'define-syntax-rule (list name formals ...) body ...)
+     (add-signature! name formals store))
     (_ void)))
 
 (define (add-signature! name formals store)
@@ -198,7 +200,8 @@
                  (and (list? (car form))
                       (not (null? (car form)))
                       (memq (caar form)
-                            '(define define-syntax set! define-struct)))))
+                            '(define-syntax-rule
+                               define-syntax define set! define-struct)))))
     (hash-remove! signatures path)))
 
 ;;; autodoc.ss ends here
