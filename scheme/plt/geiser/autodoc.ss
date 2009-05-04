@@ -54,15 +54,17 @@
          (loc (symbol-location* fun))
          (name (car loc))
          (path (cdr loc))
-         (sgn (and path (signature path name fun))))
+         (sgn (and path (find-signature path name fun))))
     (and sgn
-         (list (cons 'signature (cons fun sgn))
-               (cons 'position 0)
+         (list (cons 'signature (format-signature fun sgn))
+               (cons 'position (find-position sgn form))
                (cons 'module (module-path-name->name path))))))
 
 (define signatures (make-hash))
 
-(define (signature path name local-name)
+(define-struct signature (required optional keys rest))
+
+(define (find-signature path name local-name)
   (let ((path (if (path? path) (path->string path) path)))
     (hash-ref! (hash-ref! signatures
                           path
@@ -100,8 +102,10 @@
 
 (define (parse-formals formals)
   (let loop ((formals formals) (req '()) (opt '()) (keys '()))
-    (cond ((null? formals) (make-signature req opt keys #f))
-          ((symbol? formals) (make-signature req opt keys formals))
+    (cond ((null? formals)
+           (make-signature (reverse req) (reverse opt) (reverse keys) #f))
+          ((symbol? formals)
+           (make-signature (reverse req) (reverse opt) (reverse keys) formals))
           ((pair? (car formals)) (loop (cdr formals)
                                        req
                                        (cons (car formals) opt)
@@ -117,44 +121,84 @@
                                             (cons name keys))))
           (else (loop (cdr formals) (cons (car formals) req) opt keys)))))
 
-(define (make-signature req opt keys rest)
-  `(,@(reverse req)
-    ,@(if (null? opt) opt
-          (cons '#:opt (reverse opt)))
-    ,@(if (null? keys) keys
-          (cons '#:key (reverse keys)))
-    ,@(if rest (list '#:rest rest) '())))
+(define (infer-signature name)
+  (define syntax-tag (cons 1 0))
+  (define error-tag (cons 1 1))
+  (define generic-signature (make-signature '(...) '() '() #f))
+  (let ((value (with-handlers ((exn:fail:syntax? (lambda (_) syntax-tag))
+                               (exn:fail:contract:variable? (lambda (_) error-tag)))
+                 (namespace-variable-value name))))
+    (cond ((procedure? value)
+           (arity->signature (procedure-arity value)))
+          ((eq? value syntax-tag) generic-signature)
+          ((eq? value error-tag) #f)
+          (else 'variable))))
+
+(define (arity->signature arity)
+  (define (args fst count)
+    (let* ((letts (list->vector '(#\x #\y #\z #\u #\v #\w #\r #\s)))
+           (len (vector-length letts))
+           (lett (lambda (n) (vector-ref letts (modulo n len)))))
+      (map (lambda (n) (string->symbol (format "~a" (lett n))))
+           (build-list count (lambda (n) (+ n fst))))))
+  (cond ((number? arity)
+         (make-signature (args 0 arity) '() '() #f))
+        ((arity-at-least? arity)
+         (make-signature (args 0 (arity-at-least-value arity)) '() '() 'rest))
+        (else
+         (let* ((arg-nos (map (lambda (a)
+                                (if (number? a) a (arity-at-least-value a)))
+                              arity))
+                (min-val (apply min arg-nos))
+                (max-val (apply max arg-nos))
+                (opt-no (- max-val min-val)))
+           (make-signature (args 0 min-val) (args min-val opt-no) '() #f)))))
+
+(define (format-signature fun sign)
+ (cond ((symbol? sign) (cons fun sign))
+       ((signature? sign)
+        (let ((req (signature-required sign))
+              (opt (signature-optional sign))
+              (keys (signature-keys sign))
+              (rest (signature-rest sign)))
+          `(,fun
+            ,@req
+            ,@(if (null? opt) opt (cons '#:opt opt))
+            ,@(if (null? keys) keys (cons '#:key keys))
+            ,@(if rest (list '#:rest rest) '()))))
+       (else #f)))
+
+(define (find-position sign form)
+  (if (signature? sign)
+      (let* ((lf (length form))
+             (lf-1 (- lf 1)))
+        (if (= 1 lf) 0
+            (let ((req (length (signature-required sign)))
+                  (opt (length (signature-optional sign)))
+                  (keys (map (lambda (k) (symbol->keyword (if (list? k) (car k) k)))
+                             (signature-keys sign)))
+                  (rest (signature-rest sign)))
+              (cond ((<= lf (+ 1 req)) lf-1)
+                    ((<= lf (+ 1 req opt)) (if (> opt 0) lf lf-1))
+                    ((or (memq (last form) keys)
+                         (memq (car (take-right form 2)) keys)) =>
+                         (lambda (sl)
+                           (+ 2 req
+                              (if (> opt 0) (+ 1 opt) 0)
+                              (- (length keys) (length sl)))))
+                    (else (+ 1 req
+                             (if (> opt 0) (+ 1 opt) 0)
+                             (if (null? keys) 0 (+ 1 (length keys)))
+                             (if rest 2 0)))))))
+      0))
 
 (define (update-module-cache path . form)
   (when (and (string? path)
              (or (null? form)
                  (and (list? (car form))
                       (not (null? (car form)))
-                      (memq (caar form) '(define)))))
+                      (memq (caar form)
+                            '(define define-syntax set! define-struct)))))
     (hash-remove! signatures path)))
-
-(define (infer-signature name)
-  (let ((value (namespace-variable-value name (lambda () #f))))
-    (and (procedure? value)
-         (arity->signature (procedure-arity value)))))
-
-(define (arity->signature arity)
-  (cond ((number? arity)
-         (make-signature (gen-arg-names 1 arity) '() '() #f))
-        ((arity-at-least? arity)
-         (make-signature (gen-arg-names 1 (arity-at-least-value arity))
-                         '() '() 'rest))
-        (else
-         (let ((arg (map (lambda (a)
-                           (if (number? a) a (list (arity-at-least-value a) '...)))
-                         arity)))
-           (make-signature (list arg) '() '() #f)))))
-
-(define (gen-arg-names fst count)
-  (let* ((letts (list->vector '(#\x #\y #\z #\u #\v #\w #\t)))
-         (len (vector-length letts))
-         (lett (lambda (n) (vector-ref letts (modulo n len)))))
-    (reverse (map (lambda (n) (string->symbol (format "~a" (lett (- n 1)))))
-                  (build-list (max count 1) (lambda (n) (+ n fst)))))))
 
 ;;; autodoc.ss ends here

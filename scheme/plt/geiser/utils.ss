@@ -28,7 +28,8 @@
 
 (provide module-path-name->name
          pair->list
-         keyword->symbol)
+         keyword->symbol
+         symbol->keyword)
 
 (require srfi/13)
 
@@ -58,5 +59,6 @@
           (else (loop (cdr d) (cons (car d) s))))))
 
 (define keyword->symbol (compose string->symbol keyword->string))
+(define (symbol->keyword sym) (string->keyword (format "~a" sym)))
 
 ;;; utils.ss ends here
