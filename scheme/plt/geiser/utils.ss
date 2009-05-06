@@ -26,31 +26,9 @@
 
 #lang scheme
 
-(provide module-path-name->name
-         pair->list
+(provide pair->list
          keyword->symbol
          symbol->keyword)
-
-(require srfi/13)
-
-(define (module-path-name->name path)
-  (cond ((path? path)
-         (let* ((path (path->string path))
-                (cpaths (map (compose path->string path->directory-path)
-                             (current-library-collection-paths)))
-                (prefix-len (lambda (p)
-                              (let ((pl (string-length p)))
-                                (if (= pl (string-prefix-length p path)) pl 0))))
-                (lens (map prefix-len cpaths))
-                (real-path (substring path (apply max lens))))
-           (if (absolute-path? real-path)
-               (call-with-values (lambda () (split-path path))
-                 (lambda (_ basename __) (path->string basename)))
-               (regexp-replace "\\.[^./]*$" real-path ""))))
-        ((eq? path '#%kernel) "(kernel)")
-        ((string? path) path)
-        ((symbol? path) (symbol->string path))
-        (else "<top>")))
 
 (define (pair->list pair)
   (let loop ((d pair) (s '()))

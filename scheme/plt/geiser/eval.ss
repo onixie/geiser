@@ -33,38 +33,9 @@
          macroexpand
          make-repl-reader)
 
-(require scheme/enter geiser/utils geiser/autodoc)
+(require scheme/enter geiser/modules geiser/autodoc)
 
 (define last-result (void))
-(define nowhere (open-output-nowhere))
-
-(define (ensure-spec spec)
-  (cond ((symbol? spec) spec)
-        ((not (string? spec)) #f)
-        ((not (file-exists? spec)) #f)
-        ((absolute-path? spec) `(file ,spec))
-        (else spec)))
-
-(define (load-module spec . port)
-  (parameterize ((current-error-port (if (null? port) nowhere (car port))))
-    (eval #`(enter! #,spec))))
-
-(define (ensure-namespace mod-spec)
-  (letrec ((spec (ensure-spec mod-spec))
-           (handler (lambda (e)
-                      (load-module spec)
-                      (enter! #f)
-                      (module->namespace spec))))
-    (if spec
-        (with-handlers ((exn:fail:contract? handler))
-          (module->namespace spec))
-        (current-namespace))))
-
-(define (namespace->module-path-name ns)
-  (let ((rmp (variable-reference->resolved-module-path
-              (eval '(#%variable-reference) ns))))
-    (and (resolved-module-path? rmp)
-         (resolved-module-path-name rmp))))
 
 (define namespace->module-name
   (compose module-path-name->name namespace->module-path-name))
@@ -87,7 +58,7 @@
   (with-handlers ((exn? set-last-error))
     (update-module-cache spec form)
     (call-with-values
-        (lambda () (eval form (ensure-namespace spec)))
+        (lambda () (eval form (module-spec->namespace spec)))
       set-last-result))
   last-result)
 
@@ -100,11 +71,10 @@
       (set-last-result
        (string-append (with-output-to-string
                         (lambda ()
-                          (load-module (ensure-spec file)
-                                       (current-output-port))))
+                          (load-module file (current-output-port))))
                       "done."))
       (load-module (and (path? current-path)
-                        (ensure-spec (path->string current-path))))))
+                        (path->string current-path)))))
   last-result)
 
 (define compile-file load-file)

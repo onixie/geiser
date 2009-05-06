@@ -24,7 +24,7 @@
 
 (provide autodoc update-module-cache)
 
-(require geiser/utils geiser/locations)
+(require geiser/utils geiser/modules geiser/locations)
 
 (define (autodoc form)
   (cond ((null? form) #f)
