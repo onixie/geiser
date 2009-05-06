@@ -63,7 +63,7 @@
 (define (module-spec->path-name spec)
   (with-handlers ((exn? (lambda (_) #f)))
     (let ((ns (module->namespace (ensure-module-spec spec))))
-      (namespace->module-path-name (eval '(current-namespace) ns)))))
+      (namespace->module-path-name ns))))
 
 (define (module-path-name->name path)
   (cond ((path? path)
