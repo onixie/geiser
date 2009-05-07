@@ -26,7 +26,8 @@
          module-spec->namespace
          namespace->module-path-name
          module-path-name->name
-         module-spec->path-name)
+         module-spec->path-name
+         module-list)
 
 (require srfi/13 scheme/enter)
 
@@ -83,5 +84,44 @@
         ((string? path) path)
         ((symbol? path) (symbol->string path))
         (else "<top>")))
+
+
+(define (skippable-dir? path)
+  (call-with-values (lambda () (split-path path))
+    (lambda (_ basename __)
+      (member (path->string basename) '(".svn" "compiled")))))
+
+(define path->symbol (compose string->symbol path->string))
+
+(define (path->entry path)
+  (and (bytes=? (or (filename-extension path) #"") #"ss")
+       (let ((path (path->string path)))
+         (substring path 0 (- (string-length path) 3)))))
+
+(define (visit-module-path path kind acc)
+  (case kind
+    ((file) (let ((entry (path->entry path)))
+              (if entry (cons entry acc) acc)))
+    ((dir) (cond ((skippable-dir? path) (values acc #f))
+                 ((file-exists? (build-path path "main.ss"))
+                  (cons (path->string path) acc))
+                 (else acc)))
+    (else acc)))
+
+(define (find-modules path acc)
+  (if (directory-exists? path)
+      (parameterize ((current-directory path))
+        (fold-files visit-module-path acc))
+      acc))
+
+(define module-cache #f)
+
+(define (module-list)
+  (when (not module-cache)
+    (set! module-cache
+          (sort (foldl find-modules '() (current-library-collection-paths))
+                string<?)))
+  module-cache)
+
 
 ;;; modules.ss ends here

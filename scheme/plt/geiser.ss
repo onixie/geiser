@@ -31,12 +31,17 @@
            geiser/compile-file
            geiser/macroexpand
            geiser/completions
+           geiser/all-modules
            geiser/symbol-location
            geiser/autodoc
            geiser/make-repl-reader)
 
   (compile-enforce-module-constants #f)
-  (require geiser/eval geiser/completions geiser/locations geiser/autodoc)
+  (require geiser/eval
+           geiser/modules
+           geiser/completions
+           geiser/locations
+           geiser/autodoc)
 
   (define geiser/eval eval-in)
   (define geiser/compile compile-in)
@@ -44,6 +49,7 @@
   (define geiser/compile-file compile-file)
   (define geiser/autodoc autodoc)
   (define geiser/completions completions)
+  (define geiser/all-modules module-list)
   (define geiser/symbol-location symbol-location)
   (define geiser/macroexpand macroexpand)
 
