@@ -33,6 +33,7 @@
            geiser/completions
            geiser/all-modules
            geiser/symbol-location
+           geiser/module-location
            geiser/autodoc
            geiser/make-repl-reader)
 
@@ -51,6 +52,7 @@
   (define geiser/completions completions)
   (define geiser/all-modules module-list)
   (define geiser/symbol-location symbol-location)
+  (define geiser/module-location module-location)
   (define geiser/macroexpand macroexpand)
 
   (define (geiser/make-repl-reader)
