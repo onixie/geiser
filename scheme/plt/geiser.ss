@@ -31,7 +31,7 @@
            geiser/compile-file
            geiser/macroexpand
            geiser/completions
-           geiser/all-modules
+           geiser/module-completions
            geiser/symbol-location
            geiser/module-location
            geiser/autodoc
@@ -49,8 +49,8 @@
   (define geiser/load-file load-file)
   (define geiser/compile-file compile-file)
   (define geiser/autodoc autodoc)
-  (define geiser/completions completions)
-  (define geiser/all-modules module-list)
+  (define geiser/completions symbol-completions)
+  (define geiser/module-completions module-completions)
   (define geiser/symbol-location symbol-location)
   (define geiser/module-location module-location)
   (define geiser/macroexpand macroexpand)

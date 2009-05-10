@@ -26,16 +26,22 @@
 
 #lang scheme
 
-(provide completions)
+(provide symbol-completions
+         module-completions)
 
-(require srfi/13 geiser/utils)
+(require srfi/13 geiser/utils geiser/modules)
 
-(define (completions prefix . context)
-  (let ((context (and (not (null? context)) (car context)))
-        (prefix? (lambda (s) (string-prefix? prefix s))))
-    (append (filter prefix? (map symbol->string (local-bindings context)))
-            (sort (filter prefix? (map symbol->string (namespace-mapped-symbols)))
-                  string<?))))
+(define (filter-prefix prefix lst sort?)
+  (filter (lambda (s) (string-prefix? prefix s))
+          (if sort? (sort lst string<?) lst)))
+
+(define (symbol-completions prefix (context #f))
+  (append (filter-prefix prefix
+                         (map symbol->string (local-bindings context))
+                         #f)
+          (filter-prefix prefix
+                         (map symbol->string (namespace-mapped-symbols))
+                         #t)))
 
 (define (local-bindings form)
   (define (body f) (if (> (length f) 2) (cddr f) '()))
@@ -53,6 +59,7 @@
            (loop (cons 'let (body form)) (cons (cadr form) bindings)))
           (else (loop (cdr form) bindings)))))
 
-
+(define (module-completions prefix)
+  (filter-prefix prefix (module-list) #f))
 
 ;;; completions.ss ends here
