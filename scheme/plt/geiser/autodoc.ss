@@ -91,9 +91,11 @@
   (match datum
     ((list 'module name lang forms ...)
      (for-each (lambda (f) (parse-datum! f store)) forms))
-    ((list 'define (list name formals ...) body ...)
+    ((list 'define (list (list name formals ...) other ...) body ...)
      (add-signature! name formals store))
     ((list 'define name (list 'lambda formals body ...))
+     (add-signature! name formals store))
+    ((list 'define (list name formals ...) body ...)
      (add-signature! name formals store))
     ((list 'define-for-syntax (list name formals ...) body ...)
      (add-signature! name formals store))
