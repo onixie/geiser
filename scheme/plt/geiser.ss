@@ -24,18 +24,23 @@
 
 ;;; Code:
 
+(require version/utils)
+(unless (version<=? "4.1.5.5" (version))
+  (error 'geiser
+         "Mzscheme version 4.1.5.5 or better required (found ~a)"
+         (version)))
+
 (module geiser scheme
-  (provide geiser/eval
-           geiser/compile
-           geiser/load-file
-           geiser/compile-file
-           geiser/macroexpand
-           geiser/completions
-           geiser/module-completions
-           geiser/symbol-location
-           geiser/module-location
-           geiser/autodoc
-           geiser/make-repl-reader)
+  (provide geiser:eval
+           geiser:compile
+           geiser:load-file
+           geiser:compile-file
+           geiser:macroexpand
+           geiser:completions
+           geiser:module-completions
+           geiser:symbol-location
+           geiser:module-location
+           geiser:autodoc)
 
   (compile-enforce-module-constants #f)
   (require geiser/eval
@@ -44,25 +49,20 @@
            geiser/locations
            geiser/autodoc)
 
-  (define geiser/eval eval-in)
-  (define geiser/compile compile-in)
-  (define geiser/load-file load-file)
-  (define geiser/compile-file compile-file)
-  (define geiser/autodoc autodoc)
-  (define geiser/completions symbol-completions)
-  (define geiser/module-completions module-completions)
-  (define geiser/symbol-location symbol-location)
-  (define geiser/module-location module-location)
-  (define geiser/macroexpand macroexpand)
+  (define geiser:eval eval-in)
+  (define geiser:compile compile-in)
+  (define geiser:load-file load-file)
+  (define geiser:compile-file compile-file)
+  (define geiser:autodoc autodoc)
+  (define geiser:completions symbol-completions)
+  (define geiser:module-completions module-completions)
+  (define geiser:symbol-location symbol-location)
+  (define geiser:module-location module-location)
+  (define geiser:macroexpand macroexpand)
 
-  (define (geiser/make-repl-reader)
-    (compose (make-repl-reader (current-prompt-read)) current-namespace)))
+  (current-prompt-read (compose (make-repl-reader (current-prompt-read))
+                                current-namespace)))
 
-(require scheme/help)
 (require 'geiser)
-
-(current-prompt-read
- ((dynamic-require ''geiser 'geiser/make-repl-reader)))
-
 
 ;;; geiser.ss ends here
