@@ -87,7 +87,7 @@
         ((eq? path '#%kernel) "(kernel)")
         ((string? path) path)
         ((symbol? path) (symbol->string path))
-        (else "<top>")))
+        (else "")))
 
 
 (define (skippable-dir? path)

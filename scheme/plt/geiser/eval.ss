@@ -88,7 +88,7 @@
 (define (make-repl-reader builtin-reader)
   (lambda (ns)
     (last-namespace ns)
-    (printf "mzscheme@(~a)" (namespace->module-name ns))
+    (printf "mzscheme@~a" (namespace->module-name ns))
     (builtin-reader)))
 
 ;;; eval.ss ends here
