@@ -31,8 +31,6 @@
 
 (require srfi/13 scheme/enter)
 
-(define nowhere (open-output-nowhere))
-
 (define (ensure-module-spec spec)
   (cond ((symbol? spec) spec)
         ((not (string? spec)) #f)
@@ -55,6 +53,8 @@
           (module->namespace spec))
         (current-namespace))))
 
+(define nowhere (open-output-nowhere))
+
 (define (load-module spec . port)
   (parameterize ((current-error-port (if (null? port) nowhere (car port))))
     (eval #`(enter! #,(ensure-module-spec spec)))))
@@ -67,7 +67,7 @@
 
 (define (module-spec->path-name spec)
   (with-handlers ((exn? (lambda (_) #f)))
-    (let ((ns (module->namespace (ensure-module-spec spec))))
+    (let ((ns (module-spec->namespace (ensure-module-spec spec))))
       (namespace->module-path-name ns))))
 
 (define (module-path-name->name path)
