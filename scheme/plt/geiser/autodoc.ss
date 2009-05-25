@@ -22,9 +22,14 @@
 
 #lang scheme
 
-(provide autodoc update-module-cache)
+(provide autodoc update-module-cache get-help)
 
-(require geiser/utils geiser/modules geiser/locations)
+(require geiser/utils geiser/modules geiser/locations scheme/help)
+
+(define (get-help symbol mod)
+  (with-handlers ((exn? (lambda (e)
+                          (eval `(help ,symbol #:from ,mod)))))
+    (eval `(help ,symbol))))
 
 (define (autodoc form)
   (cond ((null? form) #f)

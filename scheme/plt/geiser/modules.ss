@@ -27,9 +27,10 @@
          namespace->module-path-name
          module-path-name->name
          module-spec->path-name
-         module-list)
+         module-list
+         module-children)
 
-(require srfi/13 scheme/enter)
+(require srfi/13 scheme/enter syntax/modresolve syntax/modcode)
 
 (define (ensure-module-spec spec)
   (cond ((symbol? spec) spec)
@@ -127,5 +128,22 @@
                 string<?)))
   module-cache)
 
+(define (module-children mod)
+  (define (extract-ids ls)
+    (append-map (lambda (idls)
+                  (map car (cdr idls)))
+                ls))
+  (define (classify-ids ids ns)
+    (let loop ((ids ids) (procs '()) (vars '()))
+      (cond ((null? ids) `((procs ,@(reverse procs)) (vars ,@(reverse vars))))
+            ((procedure? (namespace-variable-value (car ids) #t (lambda () #f) ns))
+             (loop (cdr ids) (cons (car ids) procs) vars))
+            (else (loop (cdr ids) procs (cons (car ids) vars))))))
+  (let-values (((reg syn)
+                (module-compiled-exports
+                 (get-module-code (resolve-module-path mod #f)))))
+    (let ((syn (extract-ids syn))
+          (reg (extract-ids reg)))
+      `((syntax ,@syn) ,@(classify-ids reg (module-spec->namespace mod))))))
 
 ;;; modules.ss ends here
