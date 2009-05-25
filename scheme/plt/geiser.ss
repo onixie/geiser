@@ -40,7 +40,7 @@
            geiser:module-completions
            geiser:symbol-location
            geiser:module-location
-           geiser:module-children
+           geiser:module-exports
            geiser:autodoc
            geiser:help)
 
@@ -61,7 +61,7 @@
   (define geiser:module-completions module-completions)
   (define geiser:symbol-location symbol-location)
   (define geiser:module-location module-location)
-  (define geiser:module-children module-children)
+  (define geiser:module-exports module-exports)
   (define geiser:macroexpand macroexpand)
 
   (current-prompt-read (compose (make-repl-reader (current-prompt-read))

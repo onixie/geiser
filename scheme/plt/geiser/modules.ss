@@ -28,7 +28,7 @@
          module-path-name->name
          module-spec->path-name
          module-list
-         module-children)
+         module-exports)
 
 (require srfi/13 scheme/enter syntax/modresolve syntax/modcode)
 
@@ -128,7 +128,7 @@
                 string<?)))
   module-cache)
 
-(define (module-children mod)
+(define (module-exports mod)
   (define (extract-ids ls)
     (append-map (lambda (idls)
                   (map car (cdr idls)))
