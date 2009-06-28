@@ -67,17 +67,12 @@
 (define compile-in eval-in)
 
 (define (load-file file)
-  (with-handlers ((exn? set-last-error))
-    (let ((current-path (namespace->module-path-name (last-namespace))))
-      (update-module-cache file)
-      (set-last-result
-       (string-append (with-output-to-string
-                        (lambda ()
-                          (load-module file (current-output-port))))
-                      "done."))
-      (load-module (and (path? current-path)
-                        (path->string current-path)))))
-  last-result)
+  (let ((current-path (namespace->module-path-name (last-namespace)))
+        (result (eval-in `(load-module ,file (current-output-port))
+                         'geiser/eval)))
+    (update-module-cache file)
+    (load-module (and (path? current-path) (path->string current-path)))
+    result))
 
 (define compile-file load-file)
 
