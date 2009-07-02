@@ -49,8 +49,12 @@
   (set! last-result `((error (key . ,(exn-key e)))))
   (display (exn-message e)))
 
-(define (set-last-result v . vs)
-  (set! last-result `((result  ,v ,@vs))))
+(define (write-value v)
+  (with-output-to-string
+    (lambda () (write v))))
+
+(define (set-last-result . vs)
+  (set! last-result `((result  ,@(map write-value vs)))))
 
 (define (eval-in form spec)
   (set-last-result (void))
