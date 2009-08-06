@@ -176,9 +176,9 @@
               (rest (signature-rest sign)))
           `(,fun
             ,@req
-            ,@(if (null? opt) opt (cons '#:opt opt))
-            ,@(if (null? keys) keys (cons '#:key keys))
-            ,@(if rest (list '#:rest rest) '()))))
+            ,@(if (null? opt) opt (cons 'geiser-opt_marker opt))
+            ,@(if (null? keys) keys (cons 'geiser-key_maker keys))
+            ,@(if rest (list 'geiser-rest_marker rest) '()))))
        (else #f)))
 
 (define (find-position sign form)
