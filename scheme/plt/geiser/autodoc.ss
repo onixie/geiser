@@ -46,7 +46,7 @@
      (and sgn
           `(,id
             (name . ,name)
-            ,@(format-signature sgn)
+            (args ,@(format-signature sgn))
             (module . ,(module-path-name->name path)))))))
 
 (define (format-signature sign)
@@ -64,9 +64,7 @@
 
 (define (find-signature path name local-name)
   (let ((path (if (path? path) (path->string path) path)))
-    (hash-ref! (hash-ref! signatures
-                          path
-                          (lambda () (parse-signatures path)))
+    (hash-ref! (hash-ref! signatures path (lambda () (parse-signatures path)))
                name
                (lambda () (infer-signature local-name)))))
 
