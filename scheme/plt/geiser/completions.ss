@@ -35,29 +35,10 @@
   (filter (lambda (s) (string-prefix? prefix s))
           (if sort? (sort lst string<?) lst)))
 
-(define (symbol-completions prefix (context #f))
-  (append (filter-prefix prefix
-                         (map symbol->string (local-bindings context))
-                         #f)
-          (filter-prefix prefix
-                         (map symbol->string (namespace-mapped-symbols))
-                         #t)))
-
-(define (local-bindings form)
-  (define (body f) (if (> (length f) 2) (cddr f) '()))
-  (let loop ((form form) (bindings '()))
-    (cond ((not (pair? form)) bindings)
-          ((list? (car form))
-           (loop (cdr form) (append (local-bindings (car form)) bindings)))
-          ((and (list? form) (< (length form) 2)) bindings)
-          ((memq (car form) '(define define* lambda))
-           (loop (body form) (append (pair->list (cadr form)) bindings)))
-          ((and (memq (car form) '(let let* letrec letrec*))
-                (list? (cadr form)))
-           (loop (body form) (append (map car (cadr form)) bindings)))
-          ((and (eq? 'let (car form)) (symbol? (cadr form)))
-           (loop (cons 'let (body form)) (cons (cadr form) bindings)))
-          (else (loop (cdr form) bindings)))))
+(define (symbol-completions prefix)
+  (filter-prefix prefix
+                 (map symbol->string (namespace-mapped-symbols))
+                 #t))
 
 (define (module-completions prefix)
   (filter-prefix prefix (module-list) #f))
