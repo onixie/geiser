@@ -46,36 +46,37 @@
   (vector-ref (struct->vector e) 0))
 
 (define (set-last-error e)
-  (set! last-result `((error (key . ,(exn-key e))
-                             (subr)
-                             (msg . ,(exn-message e))))))
+  (set! last-result `((error (key . ,(exn-key e)))))
+  (display (exn-message e)))
 
-(define (set-last-result v . vs)
-  (set! last-result `((result  ,v ,@vs))))
+(define (write-value v)
+  (with-output-to-string
+    (lambda () (write v))))
+
+(define (set-last-result . vs)
+  (set! last-result `((result  ,@(map write-value vs)))))
 
 (define (eval-in form spec)
   (set-last-result (void))
-  (with-handlers ((exn? set-last-error))
-    (update-module-cache spec form)
-    (call-with-values
-        (lambda () (eval form (module-spec->namespace spec)))
-      set-last-result))
-  last-result)
+  (let ((output
+         (with-output-to-string
+           (lambda ()
+             (with-handlers ((exn? set-last-error))
+               (update-module-cache spec form)
+               (call-with-values
+                   (lambda () (eval form (module-spec->namespace spec)))
+                 set-last-result))))))
+    (append last-result `((output . ,output)))))
 
 (define compile-in eval-in)
 
 (define (load-file file)
-  (with-handlers ((exn? set-last-error))
-    (let ((current-path (namespace->module-path-name (last-namespace))))
-      (update-module-cache file)
-      (set-last-result
-       (string-append (with-output-to-string
-                        (lambda ()
-                          (load-module file (current-output-port))))
-                      "done."))
-      (load-module (and (path? current-path)
-                        (path->string current-path)))))
-  last-result)
+  (let ((current-path (namespace->module-path-name (last-namespace)))
+        (result (eval-in `(load-module ,file (current-output-port))
+                         'geiser/eval)))
+    (update-module-cache file)
+    (load-module (and (path? current-path) (path->string current-path)))
+    result))
 
 (define compile-file load-file)
 

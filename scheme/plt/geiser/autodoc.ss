@@ -31,39 +31,32 @@
                           (eval `(help ,symbol #:from ,mod)))))
     (eval `(help ,symbol))))
 
-(define (autodoc form)
-  (cond ((null? form) #f)
-        ((symbol? form) (describe-application (list form)))
-        ((not (pair? form)) #f)
-        ((not (list? form)) (autodoc (pair->list form)))
-        ((define-head? form) => autodoc)
-        (else (autodoc/list form))))
+(define (autodoc ids)
+  (if (not (list? ids))
+      '()
+      (map (lambda (id) (or (autodoc* id) (list id))) ids)))
 
-(define (autodoc/list form)
-  (let ((lst (last form)))
-    (cond ((and (symbol? lst) (describe-application (list lst))))
-          ((and (pair? lst) (not (memq (car lst) '(quote))) (autodoc lst)))
-          (else (describe-application form)))))
+(define (autodoc* id)
+  (and
+   (symbol? id)
+   (let* ((loc (symbol-location* id))
+          (name (car loc))
+          (path (cdr loc))
+          (sgn (and path (find-signature path name id))))
+     (and sgn
+          `(,id
+            (name . ,name)
+            (args ,@(format-signature sgn))
+            (module . ,(module-path-name->name path)))))))
 
-(define (define-head? form)
-  (define defforms '(-define
-                     define define-values
-                     define-method define-class define-generic define-struct
-                     define-syntax define-syntaxes -define-syntax))
-  (and (= 2 (length form))
-       (memq (car form) defforms)
-       (car form)))
-
-(define (describe-application form)
-  (let* ((fun (car form))
-         (loc (symbol-location* fun))
-         (name (car loc))
-         (path (cdr loc))
-         (sgn (and path (find-signature path name fun))))
-    (and sgn
-         (list (cons 'signature (format-signature fun sgn))
-               (cons 'position (find-position sgn form))
-               (cons 'module (module-path-name->name path))))))
+(define (format-signature sign)
+  (if (signature? sign)
+      `((required ,@(signature-required sign))
+        (optional ,@(signature-optional sign)
+                  ,@(let ((rest (signature-rest sign)))
+                      (if rest (list "...") '())))
+        (key ,@(signature-keys sign)))
+      '()))
 
 (define signatures (make-hash))
 
@@ -71,9 +64,7 @@
 
 (define (find-signature path name local-name)
   (let ((path (if (path? path) (path->string path) path)))
-    (hash-ref! (hash-ref! signatures
-                          path
-                          (lambda () (parse-signatures path)))
+    (hash-ref! (hash-ref! signatures path (lambda () (parse-signatures path)))
                name
                (lambda () (infer-signature local-name)))))
 
@@ -166,44 +157,6 @@
                 (max-val (apply max arg-nos))
                 (opt-no (- max-val min-val)))
            (make-signature (args 0 min-val) (args min-val opt-no) '() #f)))))
-
-(define (format-signature fun sign)
- (cond ((symbol? sign) (cons fun sign))
-       ((signature? sign)
-        (let ((req (signature-required sign))
-              (opt (signature-optional sign))
-              (keys (signature-keys sign))
-              (rest (signature-rest sign)))
-          `(,fun
-            ,@req
-            ,@(if (null? opt) opt (cons '#:opt opt))
-            ,@(if (null? keys) keys (cons '#:key keys))
-            ,@(if rest (list '#:rest rest) '()))))
-       (else #f)))
-
-(define (find-position sign form)
-  (if (signature? sign)
-      (let* ((lf (length form))
-             (lf-1 (- lf 1)))
-        (if (= 1 lf) 0
-            (let ((req (length (signature-required sign)))
-                  (opt (length (signature-optional sign)))
-                  (keys (map (lambda (k) (symbol->keyword (if (list? k) (car k) k)))
-                             (signature-keys sign)))
-                  (rest (signature-rest sign)))
-              (cond ((<= lf (+ 1 req)) lf-1)
-                    ((<= lf (+ 1 req opt)) (if (> opt 0) lf lf-1))
-                    ((or (memq (last form) keys)
-                         (memq (car (take-right form 2)) keys)) =>
-                         (lambda (sl)
-                           (+ 2 req
-                              (if (> opt 0) (+ 1 opt) 0)
-                              (- (length keys) (length sl)))))
-                    (else (+ 1 req
-                             (if (> opt 0) (+ 1 opt) 0)
-                             (if (null? keys) 0 (+ 1 (length keys)))
-                             (if rest 2 0)))))))
-      0))
 
 (define (update-module-cache path . form)
   (when (and (string? path)
