@@ -78,9 +78,9 @@
      (for-each (lambda (f) (parse-datum! f store)) forms))
     ((list 'define (list (list name formals ...) other ...) body ...)
      (add-signature! name formals store))
-    ((list 'define name (list 'lambda formals body ...))
-     (add-signature! name formals store))
     ((list 'define (list name formals ...) body ...)
+     (add-signature! name formals store))
+    ((list 'define name (list 'lambda formals body ...))
      (add-signature! name formals store))
     ((list 'define-for-syntax (list name formals ...) body ...)
      (add-signature! name formals store))
@@ -91,7 +91,8 @@
     (_ void)))
 
 (define (add-signature! name formals store)
-  (hash-set! store name (parse-formals formals)))
+  (when (symbol? name)
+    (hash-set! store name (parse-formals formals))))
 
 (define (parse-formals formals)
   (let loop ((formals formals) (req '()) (opt '()) (keys '()))
