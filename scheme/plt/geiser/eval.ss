@@ -41,27 +41,28 @@
 (define (set-last-result . vs)
   (set! last-result `((result  ,@(map write-value vs)))))
 
-(define (eval-in form spec)
+(define (call-with-result thunk)
   (set-last-result (void))
   (let ((output
          (with-output-to-string
            (lambda ()
              (with-handlers ((exn? set-last-error))
-               (update-module-cache spec form)
-               (call-with-values
-                   (lambda () (eval form (module-spec->namespace spec)))
-                 set-last-result))))))
+               (call-with-values thunk set-last-result))))))
     (append last-result `((output . ,output)))))
+
+(define (eval-in form spec lang)
+  (call-with-result
+   (lambda ()
+     (update-module-cache spec form)
+     (eval form (module-spec->namespace spec lang)))))
 
 (define compile-in eval-in)
 
 (define (load-file file)
-  (let ((current-path (namespace->module-path-name (last-namespace)))
-        (result (eval-in `(load-module ,file (current-output-port))
-                         'geiser/eval)))
-    (update-module-cache file)
-    (load-module (and (path? current-path) (path->string current-path)))
-    result))
+  (call-with-result
+   (lambda ()
+     (load-module file (current-output-port) (last-namespace))
+     (update-module-cache file))))
 
 (define compile-file load-file)
 

@@ -38,7 +38,8 @@
            geiser/locations
            geiser/autodoc)
 
-  (define geiser:eval eval-in)
+  (define (geiser:eval lang)
+    (lambda (form spec) (eval-in form spec lang)))
   (define geiser:compile compile-in)
   (define geiser:load-file load-file)
   (define geiser:compile-file compile-file)
