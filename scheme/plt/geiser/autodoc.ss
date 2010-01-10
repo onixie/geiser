@@ -1,6 +1,6 @@
 ;;; autodoc.ss -- suport for autodoc echo
 
-;; Copyright (C) 2009 Jose Antonio Ortega Ruiz
+;; Copyright (C) 2009, 2010 Jose Antonio Ortega Ruiz
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the Modified BSD License. You should
@@ -54,7 +54,9 @@
 
 (define (find-signatures path name local-name)
   (let ((path (if (path? path) (path->string path) path)))
-    (hash-ref! (hash-ref! signatures path (lambda () (parse-signatures path)))
+    (hash-ref! (hash-ref! signatures
+                          path
+                          (lambda () (parse-signatures path)))
                name
                (lambda () (infer-signatures local-name)))))
 
@@ -76,7 +78,7 @@
 (define (parse-datum! datum store)
   (with-handlers ((exn? (lambda (_) void)))
     (match datum
-      (`(module ,name ,lang . ,forms)
+      (`(module ,name ,lang (#%module-begin . ,forms))
        (for-each (lambda (f) (parse-datum! f store)) forms))
       (`(define ((,name . ,formals) . ,_) . ,_)
        (add-signature! name formals store))
