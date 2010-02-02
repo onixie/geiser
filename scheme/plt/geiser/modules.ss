@@ -1,6 +1,6 @@
 ;;; modules.ss -- module metadata
 
-;; Copyright (C) 2009 Jose Antonio Ortega Ruiz
+;; Copyright (C) 2009, 2010 Jose Antonio Ortega Ruiz
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the Modified BSD License. You should
@@ -26,7 +26,7 @@
         ((not (string? spec)) #f)
         (else `(file ,spec))))
 
-(define (module-spec->namespace spec lang)
+(define (module-spec->namespace spec (lang #f))
   (let* ((spec (ensure-module-spec spec))
          (try-lang (lambda (e)
                      (if (symbol? lang)
