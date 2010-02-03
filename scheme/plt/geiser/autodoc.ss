@@ -16,9 +16,9 @@
 (require geiser/utils geiser/modules geiser/locations scheme/help)
 
 (define (get-help symbol mod)
-  (with-handlers ((exn? (lambda (e)
-                          (eval `(help ,symbol #:from ,mod)))))
-    (eval `(help ,symbol))))
+  (with-handlers ((exn? (lambda (_)
+                          (eval `(help ,symbol)))))
+    (eval `(help ,symbol #:from ,(ensure-module-spec mod)))))
 
 (define (autodoc ids)
   (if (not (list? ids))

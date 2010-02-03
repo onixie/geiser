@@ -12,6 +12,7 @@
 #lang scheme
 
 (provide load-module
+         ensure-module-spec
          module-spec->namespace
          namespace->module-path-name
          module-path-name->name
