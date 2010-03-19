@@ -130,7 +130,7 @@
   (define (classify-ids ids ns)
     (let loop ((ids ids) (procs '()) (vars '()))
       (cond ((null? ids) `((procs ,@(reverse procs)) (vars ,@(reverse vars))))
-            ((procedure? (namespace-variable-value (car ids) #t (lambda () #f) ns))
+            ((procedure? (namespace-variable-value (car ids) #t (const #f) ns))
              (loop (cdr ids) (cons (car ids) procs) vars))
             (else (loop (cdr ids) procs (cons (car ids) vars))))))
   (let-values (((reg syn)
