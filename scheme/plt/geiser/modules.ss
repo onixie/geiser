@@ -28,19 +28,14 @@
         (else `(file ,spec))))
 
 (define (module-spec->namespace spec (lang #f))
-  (let* ((spec (ensure-module-spec spec))
-         (try-lang (lambda (e)
-                     (if (symbol? lang)
-                         (begin
-                           (load-module lang #f (current-namespace))
-                           (module->namespace lang))
-                         (current-namespace))))
-         (filesystem-handler (lambda (e)
-                               (with-handlers ((exn? try-lang))
-                                 (module->namespace `',spec)))))
+  (let ((spec (ensure-module-spec spec)))
     (if spec
-        (with-handlers ((exn:fail:filesystem? filesystem-handler)
-                        (exn? try-lang))
+        (with-handlers ((exn?
+                         (lambda (_)
+                           (with-handlers
+                               ((exn? (const (current-namespace))))
+                             (load-module lang #f (current-namespace))
+                             (module->namespace lang)))))
           (module->namespace spec))
         (current-namespace))))
 
