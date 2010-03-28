@@ -11,13 +11,14 @@
 
 ;;; Code:
 
-(require version/utils)
-(unless (version<=? "4.1.5.5" (version))
-  (error 'geiser
-         "Mzscheme version 4.1.5.5 or better required (found ~a)"
-         (version)))
-
 (module geiser scheme
+
+  (require version/utils)
+  (unless (version<=? "4.2" (version))
+    (error 'geiser
+           "Mzscheme version 4.2 or better required (found ~a)"
+           (version)))
+
   (provide geiser:eval
            geiser:compile
            geiser:load-file
@@ -54,7 +55,5 @@
 
   (current-prompt-read (compose (make-repl-reader (current-prompt-read))
                                 current-namespace)))
-
-(require 'geiser)
 
 ;;; geiser.ss ends here
