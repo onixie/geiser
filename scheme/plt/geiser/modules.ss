@@ -108,13 +108,15 @@
         (fold-files visit-module-path acc))
       acc))
 
+(define (known-modules)
+  (sort (foldl find-modules '() (current-library-collection-paths)) string<?))
+
 (define module-cache #f)
+(define (update-module-cache)
+  (when (not module-cache) (set! module-cache (known-modules))))
 
 (define (module-list)
-  (when (not module-cache)
-    (set! module-cache
-          (sort (foldl find-modules '() (current-library-collection-paths))
-                string<?)))
+  (update-module-cache)
   module-cache)
 
 (define (module-exports mod)
@@ -124,8 +126,10 @@
                 ls))
   (define (classify-ids ids ns)
     (let loop ((ids ids) (procs '()) (vars '()))
-      (cond ((null? ids) `((procs ,@(reverse procs)) (vars ,@(reverse vars))))
-            ((procedure? (namespace-variable-value (car ids) #t (const #f) ns))
+      (cond ((null? ids)
+             `((procs ,@(reverse procs)) (vars ,@(reverse vars))))
+            ((procedure?
+              (namespace-variable-value (car ids) #t (const #f) ns))
              (loop (cdr ids) (cons (car ids) procs) vars))
             (else (loop (cdr ids) procs (cons (car ids) vars))))))
   (let-values (((reg syn)
@@ -134,5 +138,11 @@
     (let ((syn (extract-ids syn))
           (reg (extract-ids reg)))
       `((syntax ,@syn) ,@(classify-ids reg (module-spec->namespace mod))))))
+
+(define (startup)
+ (thread update-module-cache)
+ (void))
+
+(startup)
 
 ;;; modules.ss ends here
