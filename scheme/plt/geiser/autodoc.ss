@@ -80,6 +80,8 @@
     (match datum
       (`(module ,name ,lang (#%module-begin . ,forms))
        (for-each (lambda (f) (parse-datum! f store)) forms))
+      (`(module ,name ,lang . ,forms)
+       (for-each (lambda (f) (parse-datum! f store)) forms))
       (`(define ((,name . ,formals) . ,_) . ,_)
        (add-signature! name formals store))
       (`(define (,name . ,formals) . ,_)
