@@ -11,49 +11,13 @@
 
 ;;; Code:
 
-(module geiser scheme
+(require version/utils)
+(unless (version<=? "4.2" (version))
+  (error 'geiser
+         "Mzscheme version 4.2 or better required (found ~a)"
+         (version)))
 
-  (require version/utils)
-  (unless (version<=? "4.2" (version))
-    (error 'geiser
-           "Mzscheme version 4.2 or better required (found ~a)"
-           (version)))
-
-  (provide geiser:eval
-           geiser:compile
-           geiser:load-file
-           geiser:compile-file
-           geiser:macroexpand
-           geiser:completions
-           geiser:module-completions
-           geiser:symbol-location
-           geiser:module-location
-           geiser:module-exports
-           geiser:autodoc
-           geiser:help)
-
-  (compile-enforce-module-constants #f)
-  (require geiser/eval
-           geiser/modules
-           geiser/completions
-           geiser/locations
-           geiser/autodoc)
-
-  (define (geiser:eval lang)
-    (lambda (form spec) (eval-in form spec lang)))
-  (define geiser:compile compile-in)
-  (define geiser:load-file load-file)
-  (define geiser:compile-file compile-file)
-  (define geiser:autodoc autodoc)
-  (define geiser:help get-help)
-  (define geiser:completions symbol-completions)
-  (define geiser:module-completions module-completions)
-  (define geiser:symbol-location symbol-location)
-  (define geiser:module-location module-location)
-  (define geiser:module-exports module-exports)
-  (define geiser:macroexpand macroexpand)
-
-  (current-prompt-read (compose (make-repl-reader (current-prompt-read))
-                                current-namespace)))
+(require geiser)
+(geiser:init)
 
 ;;; geiser.ss ends here

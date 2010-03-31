@@ -11,7 +11,7 @@
 
 #lang scheme
 
-(provide autodoc update-module-cache get-help)
+(provide autodoc update-signature-cache get-help)
 
 (require geiser/utils geiser/modules geiser/locations scheme/help)
 
@@ -176,7 +176,7 @@
         ((list? arity) (map arity->signature arity))
         (else (list (arity->signature arity)))))
 
-(define (update-module-cache path . form)
+(define (update-signature-cache path . form)
   (when (and (string? path)
              (or (null? form)
                  (and (list? (car form))
