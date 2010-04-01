@@ -17,7 +17,6 @@
          "Mzscheme version 4.2 or better required (found ~a)"
          (version)))
 
-(require geiser)
-(geiser:init)
+(require geiser/user)
 
 ;;; geiser.ss ends here

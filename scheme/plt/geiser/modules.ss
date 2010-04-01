@@ -20,7 +20,7 @@
          module-list
          module-exports)
 
-(require srfi/13 scheme/enter syntax/modresolve syntax/modcode)
+(require srfi/13 syntax/modresolve syntax/modcode geiser/enter)
 
 (define (ensure-module-spec spec)
   (cond ((symbol? spec) spec)
@@ -28,22 +28,22 @@
         (else `(file ,spec))))
 
 (define (module-spec->namespace spec (lang #f))
-  (let ((spec (ensure-module-spec spec)))
-    (if spec
-        (with-handlers ((exn?
-                         (lambda (_)
-                           (with-handlers
-                               ((exn? (const (current-namespace))))
+  (let ((spec (ensure-module-spec spec))
+        (try-lang (lambda (_)
+                    (with-handlers ((exn? (const (current-namespace))))
+                      (and lang
+                           (begin
                              (load-module lang #f (current-namespace))
-                             (module->namespace lang)))))
-          (module->namespace spec))
+                             (module->namespace lang)))))))
+    (or (and spec
+             (with-handlers ((exn? try-lang)) (get-namespace spec)))
         (current-namespace))))
 
 (define nowhere (open-output-nowhere))
 
 (define (load-module spec (port #f) (ns #f))
   (parameterize ((current-error-port (or port nowhere)))
-    (eval #`(enter! #,(ensure-module-spec spec)))
+    (enter-module (ensure-module-spec spec))
     (when (namespace? ns)
       (current-namespace ns))))
 
@@ -78,7 +78,6 @@
         ((string? path) path)
         ((symbol? path) (symbol->string path))
         (else "")))
-
 
 (define (skippable-dir? path)
   (call-with-values (lambda () (split-path path))

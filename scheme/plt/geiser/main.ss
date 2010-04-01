@@ -13,8 +13,7 @@
 
 #lang scheme/base
 
-(provide geiser:init
-         geiser:eval
+(provide geiser:eval
          geiser:compile
          geiser:load-file
          geiser:compile-file
@@ -47,8 +46,4 @@
 (define geiser:module-exports module-exports)
 (define geiser:macroexpand macroexpand)
 
-(define (geiser:init)
-  (compile-enforce-module-constants #f)
-  (current-prompt-read (compose (make-repl-reader (current-prompt-read))
-                                current-namespace)))
-
+;;; main.ss ends here
