@@ -10,7 +10,10 @@ nobase_dist_pkgdata_DATA = \
   plt/geiser.ss \
   plt/geiser/autodoc.ss \
   plt/geiser/completions.ss \
+  plt/geiser/enter.ss \
   plt/geiser/eval.ss \
   plt/geiser/locations.ss \
+  plt/geiser/main.ss \
   plt/geiser/modules.ss \
+  plt/geiser/user.ss \
   plt/geiser/utils.ss
