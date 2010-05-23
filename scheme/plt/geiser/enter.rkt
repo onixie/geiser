@@ -1,4 +1,4 @@
-;;; enter.ss -- custom module loaders
+;;; enter.rkt -- custom module loaders
 
 ;; Copyright (C) 2010 Jose Antonio Ortega Ruiz
 
@@ -100,4 +100,4 @@
                            path
                            (mod-name mod)))))))))))))))
 
-;;; enter.ss ends here
+;;; enter.rkt ends here

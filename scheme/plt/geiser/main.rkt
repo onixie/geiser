@@ -1,4 +1,4 @@
-;;; main.ss -- exported interface for emacs
+;;; main.rkt -- exported interface for emacs
 
 ;; Copyright (C) 2010 Jose Antonio Ortega Ruiz
 
@@ -8,8 +8,6 @@
 ;; not, see <http://www.xfree86.org/3.3.6/COPYRIGHT2.html#5>.
 
 ;; Start date: Wed Mar 31, 2010 21:14
-
-;;; main.ss ends here
 
 #lang scheme/base
 
@@ -46,4 +44,4 @@
 (define geiser:module-exports module-exports)
 (define geiser:macroexpand macroexpand)
 
-;;; main.ss ends here
+;;; main.rkt ends here

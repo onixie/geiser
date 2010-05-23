@@ -1,4 +1,4 @@
-;;; eval.ss -- evaluation
+;;; eval.rkt -- evaluation
 
 ;; Copyright (C) 2009, 2010 Jose Antonio Ortega Ruiz
 
@@ -78,4 +78,4 @@
     (printf "racket@~a" (namespace->module-name ns))
     (builtin-reader)))
 
-;;; eval.ss ends here
+;;; eval.rkt ends here

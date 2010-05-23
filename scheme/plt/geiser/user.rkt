@@ -1,4 +1,4 @@
-;;; user.ss -- global bindings visible to geiser users
+;;; user.rkt -- global bindings visible to geiser users
 
 ;; Copyright (C) 2010 Jose Antonio Ortega Ruiz
 
@@ -53,5 +53,5 @@
 
 (init)
 
-;;; user.ss ends here
+;;; user.rkt ends here
 

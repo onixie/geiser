@@ -1,4 +1,4 @@
-;;; autodoc.ss -- suport for autodoc echo
+;;; autodoc.rkt -- suport for autodoc echo
 
 ;; Copyright (C) 2009, 2010 Jose Antonio Ortega Ruiz
 
@@ -186,4 +186,4 @@
                                define-syntax define set! define-struct)))))
     (hash-remove! signatures path)))
 
-;;; autodoc.ss ends here
+;;; autodoc.rkt ends here

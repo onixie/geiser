@@ -1,4 +1,4 @@
-;;; modules.ss -- module metadata
+;;; modules.rkt -- module metadata
 
 ;; Copyright (C) 2009, 2010 Jose Antonio Ortega Ruiz
 
@@ -87,16 +87,19 @@
 (define path->symbol (compose string->symbol path->string))
 
 (define (path->entry path)
-  (and (bytes=? (or (filename-extension path) #"") #"ss")
-       (let ((path (path->string path)))
-         (substring path 0 (- (string-length path) 3)))))
+  (let ((ext (filename-extension path)))
+    (and ext
+         (or (bytes=? ext #"rkt") (bytes=? ext #"ss"))
+         (let ((path (path->string path)))
+           (substring path 0 (- (string-length path) 3))))))
 
 (define (visit-module-path path kind acc)
   (case kind
     ((file) (let ((entry (path->entry path)))
               (if entry (cons entry acc) acc)))
     ((dir) (cond ((skippable-dir? path) (values acc #f))
-                 ((file-exists? (build-path path "main.ss"))
+                 ((or (file-exists? (build-path path "main.rkt"))
+                      (file-exists? (build-path path "main.ss")))
                   (cons (path->string path) acc))
                  (else acc)))
     (else acc)))
@@ -144,4 +147,4 @@
 
 (startup)
 
-;;; modules.ss ends here
+;;; modules.rkt ends here
