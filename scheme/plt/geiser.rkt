@@ -12,9 +12,9 @@
 ;;; Code:
 
 (require version/utils)
-(unless (version<=? "4.2" (version))
+(unless (version<=? "5.0" (version))
   (error 'geiser
-         "Mzscheme version 4.2 or better required (found ~a)"
+         "Racket version 5.0 or better required (found ~a)"
          (version)))
 
 (require geiser/user)
