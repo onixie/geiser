@@ -9,7 +9,7 @@
 
 ;; Start date: Sun Apr 26, 2009 19:43
 
-#lang scheme
+#lang racket
 
 (provide symbol-location
          symbol-location*

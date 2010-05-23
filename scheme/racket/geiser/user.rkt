@@ -9,7 +9,7 @@
 
 ;; Start date: Wed Mar 31, 2010 22:24
 
-#lang scheme/base
+#lang racket/base
 
 (provide enter!)
 
@@ -54,4 +54,3 @@
 (init)
 
 ;;; user.rkt ends here
-

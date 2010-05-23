@@ -9,7 +9,7 @@
 
 ;; Start date: Wed Mar 31, 2010 21:14
 
-#lang scheme/base
+#lang racket/base
 
 (provide geiser:eval
          geiser:compile

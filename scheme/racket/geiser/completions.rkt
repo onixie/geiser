@@ -9,7 +9,7 @@
 
 ;; Start date: Sun Apr 26, 2009 19:02
 
-#lang scheme
+#lang racket
 
 (provide symbol-completions
          module-completions)

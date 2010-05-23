@@ -1,4 +1,4 @@
-;; geiser-plt.el -- geiser support for PLT scheme
+;; geiser-racket.el -- geiser support for Racket scheme
 
 ;; Copyright (C) 2009, 2010 Jose Antonio Ortega Ruiz
 
@@ -21,53 +21,55 @@
 
 ;;; Customization:
 
-(defgroup geiser-plt nil
-  "Customization for Geiser's PLT flavour."
+(defgroup geiser-racket nil
+  "Customization for Geiser's Racket flavour."
   :group 'geiser)
 
-(geiser-custom--defcustom geiser-plt-binary
+(geiser-custom--defcustom geiser-racket-binary
   (cond ((eq system-type 'windows-nt) "Racket.exe")
         ((eq system-type 'darwin) "racket")
         (t "racket"))
   "Name to use to call the mzscheme executable when starting a REPL."
   :type '(choice string (repeat string))
-  :group 'geiser-plt)
+  :group 'geiser-racket)
 
-(geiser-custom--defcustom geiser-plt-collects nil
+(geiser-custom--defcustom geiser-racket-collects nil
   "A list of paths to be added to mzscheme's collection directories."
   :type '(repeat file)
-  :group 'geiser-plt)
+  :group 'geiser-racket)
 
-(geiser-custom--defcustom geiser-plt-init-file "~/.plt-geiser"
+(geiser-custom--defcustom geiser-racket-init-file "~/.racket-geiser"
   "Initialization file with user code for the mzscheme REPL."
   :type 'string
-  :group 'geiser-plt)
+  :group 'geiser-racket)
 
 
 
 ;;; REPL support:
 
-(defun geiser-plt--binary ()
-  (if (listp geiser-plt-binary) (car geiser-plt-binary) geiser-plt-binary))
+(defun geiser-racket--binary ()
+  (if (listp geiser-racket-binary)
+      (car geiser-racket-binary)
+    geiser-racket-binary))
 
-(defun geiser-plt--parameters ()
+(defun geiser-racket--parameters ()
   "Return a list with all parameters needed to start mzscheme.
-This function uses `geiser-plt-init-file' if it exists."
-  (let ((init-file (and (stringp geiser-plt-init-file)
-                        (expand-file-name geiser-plt-init-file))))
+This function uses `geiser-racket-init-file' if it exists."
+  (let ((init-file (and (stringp geiser-racket-init-file)
+                        (expand-file-name geiser-racket-init-file))))
     `("-i" "-q"
-      "-S" ,(expand-file-name "plt/" geiser-scheme-dir)
-      ,@(apply 'append (mapcar (lambda (p) (list "-S" p)) geiser-plt-collects))
-      ,@(and (listp geiser-plt-binary) (cdr geiser-plt-binary))
+      "-S" ,(expand-file-name "racket/" geiser-scheme-dir)
+      ,@(apply 'append (mapcar (lambda (p) (list "-S" p)) geiser-racket-collects))
+      ,@(and (listp geiser-racket-binary) (cdr geiser-racket-binary))
       ,@(and init-file (file-readable-p init-file) (list "-f" init-file))
-      "-f" ,(expand-file-name "plt/geiser.rkt" geiser-scheme-dir))))
+      "-f" ,(expand-file-name "racket/geiser.rkt" geiser-scheme-dir))))
 
-(defconst geiser-plt--prompt-regexp "^=?\\(mzscheme\\|racket\\)@[^ ]*?> ")
+(defconst geiser-racket--prompt-regexp "^=?\\(mzscheme\\|racket\\)@[^ ]*?> ")
 
 
 ;;; Evaluation support:
 
-(defun geiser-plt--language ()
+(defun geiser-racket--language ()
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward
@@ -75,74 +77,76 @@ This function uses `geiser-plt-init-file' if it exists."
         (car (geiser-syntax--read-from-string (match-string-no-properties 1)))
       :f)))
 
-(defun geiser-plt--geiser-procedure (proc)
+(defun geiser-racket--geiser-procedure (proc)
   (if (memq proc '(eval compile))
-      `((dynamic-require 'geiser 'geiser:eval) ',(geiser-plt--language))
+      `((dynamic-require 'geiser 'geiser:eval) ',(geiser-racket--language))
     `(dynamic-require 'geiser ',(intern (format "geiser:%s" proc)))))
 
-(defconst geiser-plt--module-re
+(defconst geiser-racket--module-re
   "^(module +\\([^ ]+\\)")
 
-(defun geiser-plt--explicit-module ()
+(defun geiser-racket--explicit-module ()
   (save-excursion
     (goto-char (point-min))
-    (and (re-search-forward geiser-plt--module-re nil t)
+    (and (re-search-forward geiser-racket--module-re nil t)
          (ignore-errors
            (car (geiser-syntax--read-from-string
                  (match-string-no-properties 1)))))))
 
-(defsubst geiser-plt--implicit-module ()
+(defsubst geiser-racket--implicit-module ()
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "^#lang " nil t)
         (buffer-file-name)
       :f)))
 
-(defun geiser-plt--get-module (&optional module)
+(defun geiser-racket--get-module (&optional module)
   (cond ((and (null module) (buffer-file-name)))
-        ;; (geiser-plt--explicit-module)
-        ((null module) (geiser-plt--implicit-module))
+        ;; (geiser-racket--explicit-module)
+        ((null module) (geiser-racket--implicit-module))
         ((symbolp module) module)
         ((and (stringp module) (file-name-absolute-p module)) module)
         ((stringp module) (intern module))
         (t nil)))
 
-(defun geiser-plt--symbol-begin (module)
+(defun geiser-racket--symbol-begin (module)
   (save-excursion (skip-syntax-backward "^-()>") (point)))
 
-(defun geiser-plt--enter-command (module)
+(defun geiser-racket--enter-command (module)
   (and (stringp module) (format "(enter! (file %S))" module)))
 
-(defconst geiser-plt--binding-forms
+(defconst geiser-racket--binding-forms
   '(for for/list for/hash for/hasheq for/and for/or
     for/lists for/first for/last for/fold))
 
-(defconst geiser-plt--binding-forms*
+(defconst geiser-racket--binding-forms*
   '(for* for*/list for*/lists for*/hash for*/hasheq for*/and
     for*/or for*/first for*/last for*/fold))
 
 ;;; External help
 
-(defsubst geiser-plt--get-help (symbol module)
+(defsubst geiser-racket--get-help (symbol module)
   (geiser-eval--send/wait
    `(:eval (get-help ',symbol (:module ,module)) geiser/autodoc)))
 
-(defun geiser-plt--external-help (id module)
+(defun geiser-racket--external-help (id module)
   (message "Requesting help for '%s'..." id)
-  (let ((out (geiser-eval--retort-output (geiser-plt--get-help id module))))
+  (let ((out (geiser-eval--retort-output
+              (geiser-racket--get-help id module))))
     (when (and out (string-match " but provided by:\n +\\(.+\\)\n" out))
-      (geiser-plt--get-help symbol (match-string 1 out))))
+      (geiser-racket--get-help symbol (match-string 1 out))))
   (minibuffer-message "%s done" (current-message))
   t)
 
 
 ;;; Error display
 
-(defconst geiser-plt--file-rxs '("^\\([^:\n\"]+\\):\\([0-9]+\\):\\([0-9]+\\)"
-                                 "path:\"?\\([^>\"\n]+\\)\"?>"
-                                 "module: \"\\([^>\"\n]+\\)\""))
+(defconst geiser-racket--file-rxs
+  '("^\\([^:\n\"]+\\):\\([0-9]+\\):\\([0-9]+\\)"
+    "path:\"?\\([^>\"\n]+\\)\"?>"
+    "module: \"\\([^>\"\n]+\\)\""))
 
-(defun geiser-plt--find-files (rx)
+(defun geiser-racket--find-files (rx)
   (save-excursion
     (while (re-search-forward rx nil t)
       (geiser-edit--make-link (match-beginning 1)
@@ -151,10 +155,10 @@ This function uses `geiser-plt-init-file' if it exists."
                               (match-string 2)
                               (match-string 3)))))
 
-(defun geiser-plt--display-error (module key msg)
+(defun geiser-racket--display-error (module key msg)
   (when key
     (insert "Error: ")
-    (geiser-doc--insert-button key nil 'plt)
+    (geiser-doc--insert-button key nil 'racket)
     (newline 2))
   (when msg
     (let ((p (point)))
@@ -162,7 +166,7 @@ This function uses `geiser-plt-init-file' if it exists."
       (when key
         (let ((end (point)))
         (goto-char p)
-        (mapc 'geiser-plt--find-files geiser-plt--file-rxs)
+        (mapc 'geiser-racket--find-files geiser-racket--file-rxs)
         (goto-char end)
         (newline)))))
   t)
@@ -170,39 +174,36 @@ This function uses `geiser-plt-init-file' if it exists."
 
 ;;; Trying to ascertain whether a buffer is mzscheme scheme:
 
-(defun geiser-plt--guess ()
+(defun geiser-racket--guess ()
   (or (save-excursion
         (goto-char (point-min))
         (re-search-forward "#lang " nil t))
-      (geiser-plt--explicit-module)))
+      (geiser-racket--explicit-module)))
 
 
 ;;; Implementation definition:
 
-(define-geiser-implementation plt
+(define-geiser-implementation racket
   (unsupported-procedures '(callers callees generic-methods))
-  (binary geiser-plt--binary)
-  (arglist geiser-plt--parameters)
+  (binary geiser-racket--binary)
+  (arglist geiser-racket--parameters)
   (startup)
-  (prompt-regexp geiser-plt--prompt-regexp)
-  (marshall-procedure geiser-plt--geiser-procedure)
-  (find-module geiser-plt--get-module)
-  (enter-command geiser-plt--enter-command)
-  (find-symbol-begin geiser-plt--symbol-begin)
-  (display-error geiser-plt--display-error)
-  (display-help geiser-plt--external-help)
-  (check-buffer geiser-plt--guess)
-  (binding-forms geiser-plt--binding-forms)
-  (binding-forms* geiser-plt--binding-forms*))
+  (prompt-regexp geiser-racket--prompt-regexp)
+  (marshall-procedure geiser-racket--geiser-procedure)
+  (find-module geiser-racket--get-module)
+  (enter-command geiser-racket--enter-command)
+  (find-symbol-begin geiser-racket--symbol-begin)
+  (display-error geiser-racket--display-error)
+  (display-help geiser-racket--external-help)
+  (check-buffer geiser-racket--guess)
+  (binding-forms geiser-racket--binding-forms)
+  (binding-forms* geiser-racket--binding-forms*))
 
 (geiser-impl--add-to-alist 'regexp
-                           "\\.\\(mzscheme\\|racket\\)\\.sl?s$" 'plt t)
-(geiser-impl--add-to-alist 'regexp "\\.ss$" 'plt t)
-(geiser-impl--add-to-alist 'regexp "\\.rkt$" 'plt t)
-
-(defalias 'run-racket 'run-plt)
-(defalias 'switch-to-racket 'switch-to-plt)
+                           "\\.\\(mzscheme\\|racket\\)\\.sl?s$" 'racket t)
+(geiser-impl--add-to-alist 'regexp "\\.ss$" 'racket t)
+(geiser-impl--add-to-alist 'regexp "\\.rkt$" 'racket t)
 
 
-(provide 'geiser-plt)
-;;; geiser-plt.el ends here
+(provide 'geiser-racket)
+;;; geiser-racket.el ends here

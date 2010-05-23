@@ -9,7 +9,7 @@
 
 ;; Start date: Sun May 03, 2009 14:45
 
-#lang scheme
+#lang racket
 
 (provide autodoc update-signature-cache get-help)
 

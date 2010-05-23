@@ -9,7 +9,7 @@
 
 ;; Start date: Wed May 06, 2009 02:35
 
-#lang scheme
+#lang racket
 
 (provide load-module
          ensure-module-spec

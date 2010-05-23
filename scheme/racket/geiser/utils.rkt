@@ -9,7 +9,7 @@
 
 ;; Start date: Sun May 03, 2009 03:09
 
-#lang scheme
+#lang racket
 
 (provide pair->list
          keyword->symbol

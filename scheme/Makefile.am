@@ -7,13 +7,13 @@ nobase_dist_pkgdata_DATA = \
   guile/geiser/modules.scm \
   guile/geiser/utils.scm \
   guile/geiser/xref.scm \
-  plt/geiser.ss \
-  plt/geiser/autodoc.ss \
-  plt/geiser/completions.ss \
-  plt/geiser/enter.ss \
-  plt/geiser/eval.ss \
-  plt/geiser/locations.ss \
-  plt/geiser/main.ss \
-  plt/geiser/modules.ss \
-  plt/geiser/user.ss \
-  plt/geiser/utils.ss
+  racket/geiser.rkt \
+  racket/geiser/autodoc.rkt \
+  racket/geiser/completions.rkt \
+  racket/geiser/enter.rkt \
+  racket/geiser/eval.rkt \
+  racket/geiser/locations.rkt \
+  racket/geiser/main.rkt \
+  racket/geiser/modules.rkt \
+  racket/geiser/user.rkt \
+  racket/geiser/utils.rkt
