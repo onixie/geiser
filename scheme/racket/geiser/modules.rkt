@@ -14,6 +14,7 @@
 (provide load-module
          ensure-module-spec
          module-spec->namespace
+	 namespace->module-name
          namespace->module-path-name
          module-path-name->name
          module-spec->path-name
@@ -74,10 +75,13 @@
                (call-with-values (lambda () (split-path path))
                  (lambda (_ basename __) (path->string basename)))
                (regexp-replace "\\.[^./]*$" real-path "")))]
-        [(eq? path '#%kernel) "(kernel)"]
+        ;; [(eq? path '#%kernel) "(kernel)"]
         [(string? path) path]
         [(symbol? path) (symbol->string path)]
         [else ""]))
+
+(define namespace->module-name
+  (compose module-path-name->name namespace->module-path-name))
 
 (define (skippable-dir? path)
   (call-with-values (lambda () (split-path path))

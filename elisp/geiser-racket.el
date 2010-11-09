@@ -150,7 +150,8 @@ This function uses `geiser-racket-init-file' if it exists."
        (format "(require %s)" module)))
 
 (defun geiser-racket--exit-command ()
-  (not (geiser-eval--send/result '(:eval (exit) geiser/emacs))))
+  (comint-send-eof)
+  (get-buffer-process (current-buffer)))
 
 (defconst geiser-racket--binding-forms
   '(for for/list for/hash for/hasheq for/and for/or
@@ -168,7 +169,7 @@ This function uses `geiser-racket-init-file' if it exists."
 
 (defsubst geiser-racket--get-help (symbol module)
   (geiser-eval--send/wait
-   `(:eval (get-help ',symbol (:module ,module)) geiser/autodoc)))
+   `(:eval (get-help ',symbol '(:module ,module)) geiser/autodoc)))
 
 (defun geiser-racket--external-help (id module)
   (message "Requesting help for '%s'..." id)
@@ -222,6 +223,18 @@ This function uses `geiser-racket-init-file' if it exists."
       (geiser-racket--explicit-module)))
 
 
+;;; Remote REPLs
+
+(defun connect-to-racket ()
+  "Start a Racket REPL connected to a remote process.
+
+The remote process needs to be running a REPL server started
+using start-geiser, a procedure in the geiser/server module."
+  (interactive)
+  (geiser-connect 'racket))
+
+
+
 ;;; Implementation definition:
 
 (define-geiser-implementation racket
@@ -229,6 +242,7 @@ This function uses `geiser-racket-init-file' if it exists."
   (binary geiser-racket--binary)
   (arglist geiser-racket--parameters)
   (startup)
+  (eot-regexp "\0")
   (prompt-regexp geiser-racket--prompt-regexp)
   (marshall-procedure geiser-racket--geiser-procedure)
   (find-module geiser-racket--get-module)
