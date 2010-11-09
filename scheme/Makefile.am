@@ -15,5 +15,6 @@ nobase_dist_pkgdata_DATA = \
   racket/geiser/locations.rkt \
   racket/geiser/main.rkt \
   racket/geiser/modules.rkt \
+  racket/geiser/server.rkt \
   racket/geiser/user.rkt \
   racket/geiser/utils.rkt
