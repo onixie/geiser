@@ -10,37 +10,38 @@
 ;; Start date: Sun Feb 08, 2009 18:39
 
 (define-module (geiser emacs)
-  #:re-export (ge:macroexpand
-               ge:compile-file
-               ge:load-file
-               ge:autodoc
-               ge:completions
-               ge:module-completions
-               ge:symbol-location
-               ge:generic-methods
-               ge:symbol-documentation
-               ge:module-exports
-               ge:module-location
-               ge:callers
-               ge:callees
-               ge:find-file)
-  #:export (ge:compile
-            ge:no-values
-            ge:newline)
   #:use-module (ice-9 match)
+  #:use-module (system repl command)
+  #:use-module (system repl error-handling)
   #:use-module (geiser evaluation)
   #:use-module ((geiser modules) :renamer (symbol-prefix-proc 'ge:))
   #:use-module ((geiser completion) :renamer (symbol-prefix-proc 'ge:))
   #:use-module ((geiser xref) :renamer (symbol-prefix-proc 'ge:))
   #:use-module ((geiser doc) :renamer (symbol-prefix-proc 'ge:)))
 
-(define (ge:no-values) (values))
-(define ge:newline newline)
+(define this-module (resolve-module '(geiser emacs)))
 
-(define (ge:compile form mod)
-  (match form
-    (`((@ (geiser emacs) . ,_) . ,_) (compile/no-warns form mod))
-    (_ (compile/warns form mod))))
+(define-meta-command ((geiser-no-values geiser) repl)
+  "geiser-no-values
+No-op command used internally by Geiser."
+  (values))
 
+(define-meta-command ((geiser-eval geiser) repl (mod form args) . rest)
+  "geiser-eval
+Meta-command used by Geiser to evaluate and compile code."
+  (if (null? args)
+      (call-with-error-handling
+       (lambda () (ge:compile form mod)))
+      (let ((proc (eval form this-module)))
+        (ge:eval `(,proc ,@args) mod))))
 
-;;; emacs.scm ends here
+(define-meta-command ((geiser-load-file geiser) repl file)
+  "geiser-load-file
+Meta-command used by Geiser to load and compile files."
+  (call-with-error-handling
+   (lambda () (ge:compile-file file))))
+
+(define-meta-command ((geiser-newline geiser) repl)
+  "geiser-newline
+Meta-command used by Geiser to emit a new line."
+  (newline))
